@@ -2,8 +2,8 @@
 #define MAX 100
 
 typedef enum {lparen, rparen, plus, minus, times, divide, mod, eos, operand} precedence;
-int isp[] = { 0, 19, 12, 12, 13, 13, 13,  0 };
-int icp[] = { 20, 19, 12, 12, 13, 13, 13,  0 };
+int isp[] = { 0, 19, 12, 12, 13, 13, 13, 0 };
+int icp[] = { 20, 19, 12, 12, 13, 13, 13, 0 };
 char string[MAX] = { 0 };
 char postfix_string[MAX] = { 0 };
 
@@ -77,15 +77,29 @@ void postfix(void) {
 			stackpop(postfix_stack, &postfix_top);
 		}
 		else {
-			while (isp[postfix_stack[postfix_top].op] >= icp[token])
+			while (isp[getToken_gen(postfix_stack[postfix_top].op)] >= icp[token])
 				postfix_string[i++] = (char)stackpop(postfix_stack, &postfix_top);
 			stackpush(symbol, postfix_stack, &postfix_top);
 		}
 	}
 	while (postfix_top > -1)
 		postfix_string[i++] = (char)stackpop(postfix_stack, &postfix_top);
-	postfix_string[i++] = ' ';
-	postfix_string[i] = '\n';
+	postfix_string[i++] = '\n';
+}
+
+precedence getToken_gen(char symbol) {
+	switch (symbol) {
+	case '(': return lparen;
+	case ')': return rparen;
+	case '+': return plus;
+	case '-': return minus;
+	case '/': return divide;
+	case '*': return times;
+	case '%': return mod;
+	case ' ': return eos;
+	default: printf("FUCK");
+		      return -1;
+	}
 }
 
 precedence getToken_fp(char *symbol, int *n) {
