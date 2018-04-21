@@ -30,7 +30,7 @@ int main(void) {
 	printf("Equation : ");
 	postfix();
 	puts(postfix_string);
-	printf("\n\n%d", eval());
+	printf("Result : %d", eval());
  }
 
 int eval(void) {
