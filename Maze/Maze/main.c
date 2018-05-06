@@ -22,7 +22,7 @@ typedef struct {
 typedef struct {
 	short int row;
 	short int col;
-	short int dir;
+	short int dirary[8];
 }element;
 
 //Global_val---------------------------------------------------------------------------------------------------
@@ -33,13 +33,13 @@ element stack[MAXPATH];
 int top, exit_row, exit_col;
 
 
-
 //Function_init------------------------------------------------------------------------------------------------
 
 void path(void);
 void setup_maze(void);
 element pop(void);
 void push(element item);
+int isdirfull(int *ary);
  
 //Code---------------------------------------------------------------------------------------------------------
 
@@ -53,16 +53,24 @@ int main(void) {
 
 
 void path(void) {
+	srand(time(NULL));
 	int row, col, nextRow, nextCol, dir, found = FALSE;
+	int dirary[8];
 	element position;
 	maze[1][1] = 2; top = 0;
-	stack[0].row = 1; stack[0].col = 1; stack[0].dir = 1;
+	stack[0].row = 1; stack[0].col = 1;
+	for (int i = 0; i < 8; i++)
+		stack[0].dirary[i] = 0;
 	while (top > -1 && !found) {
 		position = pop(&top);
 		row = position.row;
 		col = position.col;
-		dir = position.dir;
-		while (dir < 8 && !found) {
+		for (int i = 0; i < 8; i++)
+			dirary[i] = position.dirary[i];
+		while (!isdirfull(dirary) && !found) {
+			do {
+				dir = rand() % 8;
+			} while (dirary[dir]);
 			nextRow = row + move[dir].vert;
 			nextCol = col + move[dir].horiz;
 			if (((nextRow - exit_row == 1) || (nextRow - exit_row == -1)) && ((nextCol - exit_col == 1) || (nextCol - exit_col == -1)))
@@ -71,11 +79,16 @@ void path(void) {
 				maze[nextRow][nextCol] = 2;
 				position.row = row;
 				position.col = col;
-				position.dir = ++dir;
+				dirary[dir] = 1;
+				for (int i = 0; i < 8; i++)
+					position.dirary[i] = dirary[i];
 				push(position);
-				row = nextRow, col = nextCol, dir = 0;
+				row = nextRow, col = nextCol;
+				for (int i = 0; i < 8; i++)
+					dirary[i] = 0;
 			}
-			else ++dir;
+			else
+				dirary[dir] = 1;
 		}
 	}
 	if (found) {
@@ -125,4 +138,12 @@ void push(element item) {
 		exit(EXIT_FAILURE);
 	}
 	stack[++top] = item;
+}
+
+int isdirfull(int *ary) {
+	for (int i = 0; i < 8; i++) {
+		if (ary[i] == 0)
+			return FALSE;
+	}
+	return TRUE;
 }
