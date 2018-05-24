@@ -32,7 +32,6 @@ offsets move[8] = { { -1, 0 }, { -1, 1 }, { 0, 1 },{ 1, 1 },{ 1, 0 },{ 1, -1 },{
 element stack[MAXPATH];
 int top, exit_row, exit_col;
 
-
 //Function_init------------------------------------------------------------------------------------------------
 
 void path(void);
