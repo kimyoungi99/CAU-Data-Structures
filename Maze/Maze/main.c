@@ -48,6 +48,7 @@ int main(void) {
 	printf("Please Enter Target Position : ");
 	scanf("%d %d", &exit_row, &exit_col);
 	path();
+	return 0;
 }
 
 
