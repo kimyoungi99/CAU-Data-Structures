@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 #define TRUE 1
 #define FALSE 0
 #define FATHER 1
 #define MOTHER 0
+
 
 typedef struct node *treePointer;
 typedef struct node {
@@ -12,11 +14,13 @@ typedef struct node {
 	treePointer father, mother;
 }node;
 
+
 typedef struct {
 	int top;
 	int bit_stack;
 }pathstack;
 pathstack path = {-1, 0};
+
 
 void preorder_print(treePointer p);
 void append_node(char child, char par_type, char par);
@@ -29,6 +33,7 @@ int pop();
 
 
 treePointer root = NULL, temp_ptr = NULL;
+
 
 int main(void) {
 	char child, parent, par_type;
