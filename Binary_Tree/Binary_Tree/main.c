@@ -20,19 +20,20 @@ typedef struct {
 	int bit_stack;
 }pathstack;
 pathstack path = {-1, 0};
+pathstack subpath = {-1, 0};
+
+treePointer root = NULL, temp_ptr = NULL;
 
 
 void preorder_print(treePointer p);
 void append_node(char child, char par_type, char par);
 void preorder_search(treePointer p, char tar);
-int find_relation(treePointer p, char tar);
+int find_relation(treePointer p, char tar, pathstack *pstack);
 void print_relation();
 void clear_node(treePointer p);
-void push(int val);
-int pop();
+void push(int val, pathstack *pstack);
+int pop(pathstack *pstack);
 
-
-treePointer root = NULL, temp_ptr = NULL;
 
 
 int main(void) {
@@ -48,8 +49,12 @@ int main(void) {
 		}
 		else if (par_type == '?') {
 			preorder_search(root, child);
-			find_relation(temp_ptr, parent);
-			print_relation();
+			find_relation(temp_ptr, parent, &path);
+			if (path.top != -1)
+				print_relation();
+			else{								//path : parent, subpath : child
+				
+			}
 			puts("");
 		}
 		else
@@ -122,19 +127,19 @@ void append_node(char child, char par_type, char par) {
 	}
 }
 
-int find_relation(treePointer p, char tar) {
+int find_relation(treePointer p, char tar, pathstack *pstack) {
 	int boolen = 0;
 	if (p) {
 		if (p->name == tar)
 			return TRUE;
-		boolen = find_relation(p->father, tar);
+		boolen = find_relation(p->father, tar, pstack);
 		if (boolen) {
-			push(FATHER);
+			push(FATHER, pstack);
 			return TRUE;
 		}
-		boolen = find_relation(p->mother, tar);
+		boolen = find_relation(p->mother, tar, pstack);
 		if (boolen) {
-			push(MOTHER);
+			push(MOTHER, pstack);
 			return TRUE;
 		}
 	}
@@ -144,7 +149,7 @@ int find_relation(treePointer p, char tar) {
 void print_relation() {
 	printf("%c", temp_ptr->name);
 	while (path.top > -1) {
-		if (pop()) {
+		if (pop(&path)) {
 			printf("-F-");
 			temp_ptr = temp_ptr->father;
 			printf("%c", temp_ptr->name);
@@ -163,18 +168,18 @@ void clear_node(treePointer p) {
 	p->mother = NULL;
 }
 
-void push(int val) {
-	if (path.top > 31)
+void push(int val, pathstack *pstack) {
+	if (pstack->top > 31)
 		printf("Stack is Full!");
-	path.bit_stack |= (val << ++path.top);
+	pstack->bit_stack |= (val << ++(pstack->top));
 }
 
-int pop() {
+int pop(pathstack *pstack) {
 	int temp = -1, retv = 0; // temp => every bit set
-	if (path.top < 0)
+	if (pstack->top < 0)
 		printf("Stack is Empty!");
-	retv = (path.bit_stack >> path.top) & 1;
-	temp ^= (1 << path.top--);
-	path.bit_stack &= temp;
+	retv = (pstack->bit_stack >> pstack->top) & 1;
+	temp ^= (1 << pstack->top--);
+	pstack->bit_stack &= temp;
 	return retv;
 }
