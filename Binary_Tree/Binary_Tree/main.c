@@ -17,27 +17,33 @@ typedef struct node {
 
 typedef struct {
 	int top;
-	int bit_stack;
-}pathstack;
-pathstack path = {-1, 0};
-pathstack subpath = {-1, 0};
+	int bit_data;
+}pathdata;
+pathdata path = {-1, 0};
+pathdata subpath = {-1, 0};
 
-treePointer root = NULL, temp_ptr = NULL;
+treePointer root = NULL, temp_ptr = NULL, connection_ptr;
 
 
 void preorder_print(treePointer p);
 void append_node(char child, char par_type, char par);
 void preorder_search(treePointer p, char tar);
-int find_relation(treePointer p, char tar, pathstack *pstack);
-void print_relation();
+int find_relation(treePointer p, char tar, pathdata *pdata);
+void print_relation(treePointer p);
+int find_connection(pathdata t_path, pathdata t_subpath);
+char find_data(pathdata pdata);
+void print_relation_subpath(treePointer p);
 void clear_node(treePointer p);
-void push(int val, pathstack *pstack);
-int pop(pathstack *pstack);
+void push(int val, pathdata *pdata);
+int pop(pathdata *pstack);
+int pop_qsbit(pathdata *pq);
+void reset_data();
 
 
 
 int main(void) {
 	char child, parent, par_type;
+	int connectionlevel = 0;
 	while (1) {
 		printf(">>");
 		scanf("%c-%c-%c", &child, &par_type, &parent);
@@ -47,15 +53,35 @@ int main(void) {
 			preorder_print(root);
 			puts("");
 		}
+
 		else if (par_type == '?') {
 			preorder_search(root, child);
 			find_relation(temp_ptr, parent, &path);
 			if (path.top != -1)
-				print_relation();
+				print_relation(temp_ptr);
 			else{								//path : parent, subpath : child
-				
+				find_relation(root, parent, &path);
+				find_relation(root, child, &subpath);
+				connectionlevel = find_connection(path, subpath);
+				if (connectionlevel == 0) {
+					if (subpath.bit_data & 1) {
+						print_relation_subpath(connection_ptr->father);
+						printf("%c-C-", connection_ptr->father->name);
+					}
+					else {
+						print_relation_subpath(connection_ptr->mother);
+					}
+					print_relation(connection_ptr);
+				}
+				else {
+					print_relation_subpath(connection_ptr);
+					reset_data();
+					find_relation(connection_ptr, parent, &path);
+					print_relation(connection_ptr);
+				}
 			}
 			puts("");
+			reset_data();
 		}
 		else
 			printf("Worng Data!\n");
@@ -79,7 +105,6 @@ void preorder_search(treePointer p, char tar) {
 		preorder_search(p->mother, tar);
 	}
 }
-
 
 void append_node(char child, char par_type, char par) {
 	if (root == NULL) {
@@ -127,38 +152,81 @@ void append_node(char child, char par_type, char par) {
 	}
 }
 
-int find_relation(treePointer p, char tar, pathstack *pstack) {
+int find_relation(treePointer p, char tar, pathdata *pdata) {
 	int boolen = 0;
 	if (p) {
 		if (p->name == tar)
 			return TRUE;
-		boolen = find_relation(p->father, tar, pstack);
+		boolen = find_relation(p->father, tar, pdata);
 		if (boolen) {
-			push(FATHER, pstack);
+			push(FATHER, pdata);
 			return TRUE;
 		}
-		boolen = find_relation(p->mother, tar, pstack);
+		boolen = find_relation(p->mother, tar, pdata);
 		if (boolen) {
-			push(MOTHER, pstack);
+			push(MOTHER, pdata);
 			return TRUE;
 		}
 	}
 	return FALSE;
 }
 
-void print_relation() {
-	printf("%c", temp_ptr->name);
+void print_relation(treePointer p) {
+	printf("%c", p->name);
 	while (path.top > -1) {
 		if (pop(&path)) {
 			printf("-F-");
-			temp_ptr = temp_ptr->father;
-			printf("%c", temp_ptr->name);
+			p = p->father;
+			printf("%c", p->name);
 		}
 		else{
 			printf("-M-");
-			temp_ptr = temp_ptr->mother;
-			printf("%c", temp_ptr->name);
+			p = p->mother;
+			printf("%c", p->name);
 		}
+	}
+}
+
+int find_connection(pathdata t_path, pathdata t_subpath) {
+	int temp = 0;
+	connection_ptr = root;
+	temp = pop(&t_path);
+	if (temp != pop(&t_subpath))
+		return 0;
+	else {
+		do {
+			if (temp)
+				connection_ptr = connection_ptr->father;
+			else
+				connection_ptr = connection_ptr->mother;
+			temp = pop(&t_path);
+		} while (temp == pop(&t_subpath));
+	}
+	return 1;
+}
+
+char find_data(pathdata pdata) {
+	treePointer ntemp = root;
+	while (pdata.top > -1) {
+		if (pop(&pdata)) 
+			ntemp = ntemp->father;
+		else
+			ntemp = ntemp->mother;
+	}
+	return ntemp->name;
+}
+
+void print_relation_subpath(treePointer p) {
+	char temp_name = find_data(subpath);
+	while (temp_name != p->name) {
+		printf("%c", temp_name);
+		if (pop_qsbit(&subpath) == 1) {
+			printf("-S-");
+		}
+		else {
+			printf("-D-");
+		}
+		temp_name = find_data(subpath);
 	}
 }
 
@@ -168,18 +236,38 @@ void clear_node(treePointer p) {
 	p->mother = NULL;
 }
 
-void push(int val, pathstack *pstack) {
-	if (pstack->top > 31)
+void push(int val, pathdata *pdata) {
+	if (pdata->top > 31)
 		printf("Stack is Full!");
-	pstack->bit_stack |= (val << ++(pstack->top));
+	pdata->bit_data |= (val << ++(pdata->top));
 }
 
-int pop(pathstack *pstack) {
+int pop(pathdata *pstack) {
 	int temp = -1, retv = 0; // temp => every bit set
-	if (pstack->top < 0)
+	if (pstack->top < 0) {
 		printf("Stack is Empty!");
-	retv = (pstack->bit_stack >> pstack->top) & 1;
+		return 0;
+	}
+	retv = (pstack->bit_data >> pstack->top) & 1;
 	temp ^= (1 << pstack->top--);
-	pstack->bit_stack &= temp;
+	pstack->bit_data &= temp;
 	return retv;
+}
+
+int pop_qsbit(pathdata *pq) {
+	int retv = 0;
+	if (pq->top < 0) {
+		printf("Queue is Empty!");
+		getch();
+		return 0;
+	}
+	retv = pq->bit_data & 2;
+	retv = retv >> 1;
+	pq->bit_data = pq->bit_data >> 1;
+	(pq->top)--;
+	return retv;
+}
+
+void reset_data() {
+	path.top = -1, path.bit_data = 0, subpath.top = -1, subpath.bit_data = 0;
 }
