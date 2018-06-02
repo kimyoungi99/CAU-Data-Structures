@@ -44,6 +44,7 @@ void reset_data();
 int main(void) {
 	char child, parent, par_type;
 	int connectionlevel = 0;
+	pathdata temppath;
 	while (1) {
 		printf(">>");
 		scanf("%c-%c-%c", &child, &par_type, &parent);
@@ -64,13 +65,17 @@ int main(void) {
 				find_relation(root, child, &subpath);
 				connectionlevel = find_connection(path, subpath);
 				if (connectionlevel == 0) {
-					if (subpath.bit_data & 1) {
+					temppath = subpath;
+					if (pop(&temppath)) {
 						print_relation_subpath(connection_ptr->father);
 						printf("%c-C-", connection_ptr->father->name);
 					}
 					else {
 						print_relation_subpath(connection_ptr->mother);
+						printf("%c-C-", connection_ptr->mother->name);
 					}
+					reset_data();
+					find_relation(connection_ptr, parent, &path);
 					print_relation(connection_ptr);
 				}
 				else {
@@ -186,6 +191,7 @@ void print_relation(treePointer p) {
 		}
 	}
 }
+}
 
 int find_connection(pathdata t_path, pathdata t_subpath) {
 	int temp = 0;
@@ -208,7 +214,7 @@ int find_connection(pathdata t_path, pathdata t_subpath) {
 char find_data(pathdata pdata) {
 	treePointer ntemp = root;
 	while (pdata.top > -1) {
-		if (pop(&pdata)) 
+		if (pop(&pdata))
 			ntemp = ntemp->father;
 		else
 			ntemp = ntemp->mother;
@@ -258,7 +264,6 @@ int pop_qsbit(pathdata *pq) {
 	int retv = 0;
 	if (pq->top < 0) {
 		printf("Queue is Empty!");
-		getch();
 		return 0;
 	}
 	retv = pq->bit_data & 2;
