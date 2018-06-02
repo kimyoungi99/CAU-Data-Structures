@@ -191,7 +191,6 @@ void print_relation(treePointer p) {
 		}
 	}
 }
-}
 
 int find_connection(pathdata t_path, pathdata t_subpath) {
 	int temp = 0;
