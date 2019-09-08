@@ -1,4 +1,7 @@
-README
-================
+Chung-Ang University Data Structure class
+=
+## Introduction
+This repo is for practicing data-structure and algorithms I learned in data structure lecture
 
-This Repository is for studying Data Structures in CAU
+## Development
+C language
